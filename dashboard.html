@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معاً نتعافى</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%);
+            --surface: rgba(255, 255, 255, 0.92);
+            --text-main: #064e3b;
+            --text-muted: #475569;
+            --primary: #047857;
+            --primary-hover: #065f46;
+            --border: rgba(16, 185, 129, 0.2);
+            --accent: #d97706;
+            --shadow: 0 10px 30px rgba(4, 120, 87, 0.08);
+            --card-radius: 24px;
+            --chat-me: #047857;
+            --chat-other: #f1f5f9;
+            --quran-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #064e3b 100%);
+            --surface: rgba(15, 23, 42, 0.88);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --border: rgba(16, 185, 129, 0.3);
+            --accent: #fbbf24;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --chat-me: #10b981;
+            --chat-other: #1e293b;
+            --quran-bg: #1e293b;
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; backdrop-filter: blur(10px); position: relative;}
+
+        /* تأثير الحركة ببطء للأيقونات */
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .nav-item i, .card-header i, .prayer-countdown i {
+            animation: float-icon 3s ease-in-out infinite;
+        }
+
+        /* الأجواء الرمضانية */
+        .ramadan-moon { position: absolute; top: 30px; left: 50px; font-size: 80px; color: var(--accent); filter: drop-shadow(0 0 20px var(--accent)); animation: float 4s ease-in-out infinite alternate; z-index: 1; pointer-events: none; opacity: 0.8;}
+        .ramadan-lantern { position: absolute; top: 0; left: 150px; font-size: 45px; color: var(--accent); animation: swing 3s ease-in-out infinite alternate; z-index: 1; pointer-events: none; filter: drop-shadow(0 0 10px var(--accent)); transform-origin: top center;}
+        
+        @keyframes float { 0% { transform: translateY(0) rotate(-5deg); } 100% { transform: translateY(-15px) rotate(5deg); } }
+        @keyframes swing { 0% { transform: rotate(-10deg); } 100% { transform: rotate(10deg); } }
+
+        /* القائمة الجانبية */
+        .sidebar { width: 280px; background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 110; backdrop-filter: blur(20px); box-shadow: -5px 0 20px rgba(0,0,0,0.05);}
+        .brand { padding: 30px 20px; font-size: 24px; font-weight: 800; color: var(--primary); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .theme-toggle { cursor: pointer; color: var(--text-muted); font-size: 22px; }
+        .theme-toggle:hover { color: var(--accent); transform: scale(1.1); }
+        
+        .nav-links { list-style: none; padding: 20px 10px; margin: 0; flex-grow: 1; overflow-y: auto; }
+        .nav-item { padding: 15px 20px; margin-bottom: 8px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 600; color: var(--text-muted); }
+        .nav-item:hover { background: rgba(16, 185, 129, 0.1); color: var(--primary); transform: translateX(-5px); }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(4, 120, 87, 0.3); }
+        
+        /* الملف الشخصي */
+        .user-profile { padding: 20px; border-top: 1px solid var(--border); }
+        .profile-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; cursor: pointer; padding: 12px; border-radius: 16px; background: rgba(16, 185, 129, 0.05); border: 1px solid var(--border);}
+        .user-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); padding: 2px; background: white;}
+        .logout-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 10px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; font-family: 'Cairo'; display: flex; justify-content: center; gap: 8px; align-items: center;}
+
+        /* منطقة المحتوى */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; z-index: 10; position: relative;}
+        .section { display: none; animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); max-width: 1100px; margin: 0 auto;}
+        .section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--surface); border-radius: var(--card-radius); padding: 35px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 25px; backdrop-filter: blur(10px); }
+        .card-header { font-size: 24px; color: var(--primary); font-weight: 800; border-bottom: 2px dashed var(--border); padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;}
+
+        /* التعافي والصلاة */
+        .circle-progress { width: 240px; height: 240px; border-radius: 50%; margin: 0 auto; border: 15px solid var(--primary); display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); background: var(--surface);}
+        .days-number { font-size: 80px; font-weight: 800; line-height: 1; color: var(--primary); text-shadow: 2px 2px 4px rgba(0,0,0,0.1);}
+        .reset-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 15px 35px; border-radius: 50px; margin-top: 35px; cursor: pointer; font-size: 16px; font-family: 'Cairo'; font-weight: bold; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        
+        /* عداد الصلاة */
+        .prayer-countdown { text-align: center; font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 25px; background: rgba(217, 119, 6, 0.1); padding: 15px; border-radius: 15px; border: 1px dashed var(--accent);}
+        
+        .prayer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
+        .prayer-card { background: rgba(16, 185, 129, 0.05); border: 1px solid var(--border); padding: 25px 20px; border-radius: 20px; text-align: center; position: relative; overflow: hidden;}
+        .prayer-card::before { content: ''; position: absolute; top: 0; right: 0; width: 40px; height: 40px; background: var(--primary); opacity: 0.1; border-radius: 0 0 0 100%; }
+        .prayer-card.next-prayer { border-color: var(--accent); background: rgba(217, 119, 6, 0.05); transform: scale(1.02); box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);}
+        .prayer-name { font-size: 20px; color: var(--text-muted); font-weight: bold; margin-bottom: 10px; }
+        .prayer-time { font-size: 28px; color: var(--primary); font-weight: 800; direction: ltr;}
+
+        /* قسم المصحف */
+        .quran-container { background: var(--surface); padding: 50px; border-radius: var(--card-radius); border: 1px solid var(--border); text-align: center; direction: rtl; line-height: 2.8; box-shadow: var(--shadow); }
+        .quran-controls { display: flex; gap: 15px; max-width: 800px; margin: 0 auto 25px auto; }
+        .quran-select { flex: 1; padding: 18px; border: 2px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text-main); font-family: 'Amiri', serif; font-size: 22px; font-weight: bold; outline: none; cursor: pointer; }
+        
+        .custom-player { display: none; align-items: center; gap: 15px; background: var(--surface); padding: 15px 30px; border-radius: 50px; border: 1px solid var(--border); max-width: 800px; margin: 0 auto 35px auto; box-shadow: var(--shadow); }
+        .play-btn { background: var(--primary); color: white; border: none; width: 55px; height: 55px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(4, 120, 87, 0.4); }
+        .progress-wrapper { flex-grow: 1; height: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 5px; cursor: pointer; position: relative; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; border-radius: 5px; transition: width 0.1s linear; }
+        
+        .bismillah { font-family: 'Amiri', serif; font-size: 38px; color: var(--primary); margin-bottom: 35px; font-weight: bold; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);}
+        .ayah-wrapper { display: inline; font-family: 'Amiri', serif; font-size: 34px; color: var(--text-main); cursor: pointer; border-radius: 8px; padding: 2px 8px; transition: 0.3s;}
+        .ayah-wrapper:hover { background-color: var(--border); color: var(--primary); }
+        .ayah-number { color: var(--accent); font-size: 28px; user-select: none; margin: 0 6px; }
+
+        /* الشات العام والخاص */
+        .chat-layout { display: flex; gap: 20px; height: 65vh; }
+        .friends-sidebar { width: 300px; background: rgba(16, 185, 129, 0.03); border-radius: var(--card-radius); border: 1px solid var(--border); overflow-y: auto; padding: 15px;}
+        .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: rgba(16, 185, 129, 0.03); border-radius: var(--card-radius); border: 1px solid var(--border); padding: 20px;}
+        
+        .friend-chat-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 16px; cursor: pointer; margin-bottom: 10px; background: var(--surface); border: 1px solid transparent;}
+        .friend-chat-item.active { background: var(--primary); color: white; }
+        
+        .chat-messages { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding-right: 10px;}
+        .message-row { display: flex; gap: 15px; align-items: flex-start; max-width: 85%; }
+        .message-row.me { flex-direction: row-reverse; align-self: flex-end; }
+        .msg-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); flex-shrink: 0;}
+        .msg-content { display: flex; flex-direction: column; gap: 5px; }
+        .message-row.me .msg-content { align-items: flex-end; }
+        .msg-sender { font-size: 13px; font-weight: bold; color: var(--text-muted); margin: 0 5px; }
+        
+        .message-bubble { background: var(--chat-other); padding: 12px 20px; border-radius: 20px; border-top-right-radius: 5px; font-size: 16px; color: var(--text-main); box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border);}
+        .message-row.me .message-bubble { background: var(--chat-me); color: white; border-top-right-radius: 20px; border-top-left-radius: 5px; border-color: transparent;}
+        
+        .chat-input { display: flex; gap: 12px; margin-top: 20px; }
+        .chat-input input { flex-grow: 1; padding: 18px 25px; border: 2px solid var(--border); border-radius: 50px; background: var(--surface); color: var(--text-main); font-family: 'Cairo'; font-size: 16px;}
+        .chat-input button { background: var(--primary); color: white; border: none; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; font-size: 20px; box-shadow: 0 4px 15px rgba(4, 120, 87, 0.3);}
+
+        /* معرض الصور المنبثق */
+        .avatars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+        .avatar-option { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 3px solid transparent; padding: 3px; background: rgba(16, 185, 129, 0.1); object-fit: cover;}
+        .avatar-option.selected { border-color: var(--primary); background: rgba(16, 185, 129, 0.2); transform: scale(1.1);}
+
+        /* النوافذ المنبثقة */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--surface); padding: 40px; border-radius: var(--card-radius); width: 90%; max-width: 450px; border: 1px solid var(--border); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2);}
+        .modal-content input[type="text"] { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; background: rgba(255,255,255,0.5); color: var(--text-main); font-family: 'Cairo'; font-size: 16px; outline: none; margin-bottom: 20px;}
+        .action-btns { display: flex; justify-content: center; gap: 12px;}
+        .action-btns button { padding: 12px 25px; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; font-size: 16px; flex: 1;}
+        .tafsir-text { font-size: 20px; color: var(--text-main); margin: 25px 0; line-height: 1.8; max-height: 250px; overflow-y: auto; text-align: justify; padding: 20px; background: rgba(16, 185, 129, 0.05); border-radius: 16px;}
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; } .sidebar { width: 100%; flex-direction: row; padding: 10px; border-left: none; border-bottom: 1px solid var(--border);}
+            .brand { border: none; padding: 10px; width: 100%; justify-content: space-between;} 
+            .user-profile, .brand span { display: none; }
+            .nav-links { display: flex; padding: 0; overflow-x: auto; white-space: nowrap; } 
+            .nav-item { border-radius: 10px; margin-bottom: 0; padding: 10px 15px;}
+            .ramadan-moon { font-size: 50px; left: 10px; top: 10px;}
+            .chat-layout { flex-direction: column; height: 80vh; }
+            .friends-sidebar { width: 100%; height: 150px; display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; gap: 10px; padding: 10px;}
+            .friend-chat-item { flex-direction: column; min-width: 100px; padding: 10px; text-align: center; gap: 5px; margin-bottom: 0;}
+            .quran-controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <i class="fas fa-moon ramadan-moon"></i>
+    <i class="fas fa-lantern ramadan-lantern"></i>
+
+    <nav class="sidebar">
+        <div class="brand">
+            <span><i class="fas fa-leaf"></i> معاً نتعافى</span>
+            <i class="fas fa-moon theme-toggle" id="theme-btn"></i>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item active" onclick="switchTab('recovery')"><i class="fas fa-shield-alt"></i> التعافي</li>
+            <li class="nav-item" onclick="switchTab('prayer')"><i class="fas fa-mosque"></i> مواقيت الصلاة</li>
+            <li class="nav-item" onclick="switchTab('quran')"><i class="fas fa-quran"></i> المصحف الشريف</li>
+            <li class="nav-item" onclick="switchTab('public-chat')"><i class="fas fa-users"></i> الخيمة العامة</li>
+            <li class="nav-item" onclick="switchTab('private-chat')"><i class="fas fa-comment-dots"></i> شات خاص</li>
+        </ul>
+        <div class="user-profile">
+            <div class="profile-info" onclick="openProfileModal()">
+                <img src="https://cdn-icons-png.flaticon.com/512/4086/4086600.png" class="user-avatar" id="nav-avatar">
+                <div style="overflow: hidden;">
+                    <div id="nav-name" style="font-weight: bold; font-size: 16px; white-space: nowrap;">جاري التحميل...</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">تعديل الملف الشخصي</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        
+        <section id="recovery" class="section active">
+            <div class="card" style="text-align: center;">
+                <h2 class="card-header" style="justify-content: center;"><i class="fas fa-trophy"></i> إنجازي في التعافي</h2>
+                <div class="circle-progress">
+                    <span style="font-size: 18px; color: var(--text-muted); font-weight: bold;">أيام نظيفة</span>
+                    <div class="days-number" id="my-days">0</div>
+                </div>
+                <p id="countdown-timer" style="color: var(--text-muted); font-weight: bold; margin-top: 30px; font-size: 20px;">جاري حساب الوقت...</p>
+                <button class="reset-btn" id="reset-btn"><i class="fas fa-redo"></i> لقد تعثرت (إعادة التحدي)</button>
+            </div>
+        </section>
+
+        <section id="prayer" class="section">
+            <div class="card">
+                <h2 class="card-header"><i class="fas fa-clock"></i> مواقيت الصلاة بتوقيت مصر</h2>
+                <div class="prayer-countdown" id="prayer-countdown">
+                    <i class="fas fa-hourglass-half"></i> جاري حساب الوقت للصلاة القادمة...
+                </div>
+                <div class="prayer-grid" id="prayer-list">
+                    <div style="grid-column: 1/-1; text-align: center; font-size: 18px;">جاري سحب المواقيت... <i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quran" class="section">
+            <div class="quran-controls">
+                <select class="quran-select" id="surah-select">
+                    <option value="">۞ اختر السورة ۞</option>
+                </select>
+                <select class="quran-select" id="reciter-select">
+                    <option value="afs">الشيخ مشاري العفاسي</option>
+                    <option value="basit">الشيخ عبد الباسط عبد الصمد</option>
+                    <option value="maher">الشيخ ماهر المعيقلي</option>
+                    <option value="yasser">الشيخ ياسر الدوسري</option>
+                </select>
+            </div>
+            
+            <div class="custom-player" id="custom-player">
+                <button class="play-btn" id="play-pause-btn"><i class="fas fa-play" id="play-icon"></i></button>
+                <div class="progress-wrapper" id="progress-wrapper">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div style="font-family: monospace; font-size: 14px; font-weight: bold; direction: ltr; color: var(--text-muted);" id="time-display">00:00</div>
+                <audio id="full-surah-audio"></audio>
+            </div>
+
+            <div class="quran-container" id="quran-text">
+                <div style="color: var(--text-muted); font-size: 28px; font-family: 'Amiri';">"شَهْرُ رَمَضَانَ الَّذِي أُنزِلَ فِيهِ الْقُرْآنُ"</div>
+            </div>
+        </section>
+
+        <section id="public-chat" class="section">
+            <div class="card" style="height: 80vh; display: flex; flex-direction: column;">
+                <h2 class="card-header"><i class="fas fa-users"></i> الخيمة الرمضانية (عام)</h2>
+                <div class="chat-area">
+                    <div class="chat-messages" id="public-chat-box"></div>
+                    <div class="chat-input">
+                        <input type="text" id="public-msg-input" placeholder="شارك أصدقائك في الخيمة...">
+                        <button id="send-public-btn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="private-chat" class="section">
+            <div class="card" style="padding: 20px;">
+                <h2 class="card-header" style="margin-bottom: 15px;"><i class="fas fa-comment-dots"></i> شات خاص بالأصدقاء</h2>
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <input type="email" id="friend-email-input" placeholder="اكتب إيميل صديقك لإضافته..." style="flex-grow:1; padding:10px; border:1px solid var(--border); border-radius:10px; font-family:'Cairo';">
+                    <button id="send-request-btn" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">إضافة صديق</button>
+                </div>
+                <div class="chat-layout">
+                    <div class="friends-sidebar" id="private-friends-list">
+                        <div style="text-align: center; color: var(--text-muted); margin-top: 20px;">جاري تحميل الأصدقاء...</div>
+                    </div>
+                    
+                    <div class="chat-area" id="private-chat-area" style="display: none;">
+                        <div style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px;">
+                            <img src="" id="current-chat-avatar" style="width: 35px; height: 35px; border-radius: 50%;">
+                            <span id="current-chat-name">اختر صديقاً للمراسلة</span>
+                        </div>
+                        <div class="chat-messages" id="private-chat-box"></div>
+                        <div class="chat-input">
+                            <input type="text" id="private-msg-input" placeholder="اكتب رسالة خاصة...">
+                            <button id="send-private-btn"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-area" id="no-chat-selected" style="justify-content: center; align-items: center; color: var(--text-muted);">
+                        <i class="fas fa-comments" style="font-size: 50px; margin-bottom: 15px; color: var(--border);"></i>
+                        <h3>اختر صديقاً من القائمة لبدء شات خاص</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-top:0; font-size: 24px;">الملف الشخصي</h3>
+            
+            <div style="text-align: right; margin-bottom: 10px; font-weight: bold; color: var(--text-muted);">اختر الأفاتار:</div>
+            <div class="avatars-grid" id="avatars-grid">
+                <img src="https://cdn-icons-png.flaticon.com/512/4086/4086600.png" class="avatar-option selected" onclick="selectAvatar(this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" class="avatar-option" onclick="selectAvatar(this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/4140/4140047.png" class="avatar-option" onclick="selectAvatar(this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png" class="avatar-option" onclick="selectAvatar(this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="avatar-option" onclick="selectAvatar(this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="avatar-option" onclick="selectAvatar(this)">
+            </div>
+
+            <div style="text-align: right; margin-bottom: 10px; font-weight: bold; color: var(--text-muted);">تعديل الاسم:</div>
+            <input type="text" id="edit-name" placeholder="اسمك">
+            
+            <div class="action-btns">
+                <button style="background: var(--primary); color: white;" id="save-profile-btn">حفظ</button>
+                <button style="background: rgba(239, 68, 68, 0.1); color: #ef4444;" onclick="document.getElementById('profile-modal').style.display='none'">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="ayah-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 id="ayah-modal-title" style="color: var(--primary); margin-top:0; font-family: 'Amiri'; font-size: 28px;">الآية</h3>
+            <div class="tafsir-text" id="ayah-tafsir"></div>
+            <audio id="ayah-audio" style="display: none;"></audio>
+            <div class="action-btns">
+                <button style="background: var(--primary); color: white;" onclick="document.getElementById('ayah-audio').play()"><i class="fas fa-play"></i> استماع</button>
+                <button style="background: var(--accent); color: white;" onclick="copyCurrentAyah()"><i class="fas fa-copy"></i> نسخ</button>
+                <button style="background: rgba(239, 68, 68, 0.1); color: #ef4444;" onclick="document.getElementById('ayah-modal').style.display='none'"><i class="fas fa-times"></i> إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqj8dl2lJ94iDWaxOZMMf5eKJXr8zTH78",
+            authDomain: "recovery-challenge.firebaseapp.com",
+            projectId: "recovery-challenge",
+            storageBucket: "recovery-challenge.firebasestorage.app",
+            messagingSenderId: "937905422820",
+            appId: "1:937905422820:web:875920c7be06c3155647f1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let userData = {};
+        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/4086/4086600.png";
+        let selectedAvatarUrl = defaultAvatar;
+        let currentPrivateChatFriendId = null;
+        let prayerCountdownInterval = null;
+
+        // --- التبويبات والمظهر ---
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if(tabId === 'public-chat') setTimeout(() => { const box = document.getElementById('public-chat-box'); box.scrollTop = box.scrollHeight; }, 100);
+            if(tabId === 'private-chat' && currentPrivateChatFriendId) setTimeout(() => { const box = document.getElementById('private-chat-box'); box.scrollTop = box.scrollHeight; }, 100);
+        }
+
+        const themeBtn = document.getElementById('theme-btn');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeBtn.className = currentTheme === 'dark' ? 'fas fa-sun theme-toggle' : 'fas fa-moon theme-toggle';
+
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeBtn.className = newTheme === 'dark' ? 'fas fa-sun theme-toggle' : 'fas fa-moon theme-toggle';
+        });
+
+        // --- المصادقة ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await loadUserData(); startTimer(); fetchPrayerTimes(); loadPublicChat(); loadFriendsList();
+            } else { window.location.href = "index.html"; }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        async function loadUserData() {
+            const userRef = doc(db, "users", currentUser.uid); const docSnap = await getDoc(userRef);
+            if (docSnap.exists()) { userData = docSnap.data(); } 
+            else { userData = { name: currentUser.email.split('@')[0], email: currentUser.email, photoURL: defaultAvatar, startDate: Date.now() }; await setDoc(userRef, userData); }
+            
+            document.getElementById('nav-name').innerText = userData.name;
+            document.getElementById('nav-avatar').src = userData.photoURL || defaultAvatar;
+            selectedAvatarUrl = userData.photoURL || defaultAvatar;
+        }
+
+        // --- تعديل الحساب ---
+        window.openProfileModal = function() {
+            document.getElementById('edit-name').value = userData.name;
+            document.querySelectorAll('.avatar-option').forEach(img => {
+                img.classList.remove('selected');
+                if(img.src === selectedAvatarUrl) img.classList.add('selected');
+            });
+            document.getElementById('profile-modal').style.display = 'flex';
+        }
+
+        window.selectAvatar = function(imgElement) {
+            document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+            imgElement.classList.add('selected');
+            selectedAvatarUrl = imgElement.src;
+        }
+
+        document.getElementById('save-profile-btn').addEventListener('click', async () => {
+            const newName = document.getElementById('edit-name').value || userData.name;
+            await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: selectedAvatarUrl });
+            userData.name = newName; userData.photoURL = selectedAvatarUrl;
+            document.getElementById('nav-name').innerText = newName; 
+            document.getElementById('nav-avatar').src = selectedAvatarUrl;
+            document.getElementById('profile-modal').style.display = 'none';
+        });
+
+        // --- العداد ---
+        function startTimer() {
+            setInterval(() => {
+                if(!userData.startDate) return;
+                const diffTime = Date.now() - userData.startDate;
+                const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const timeLeft = (userData.startDate + ((days + 1) * 24 * 60 * 60 * 1000)) - Date.now();
+                const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minsLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('my-days').innerText = days;
+                document.getElementById('countdown-timer').innerHTML = `<i class="far fa-clock"></i> يتبقى ${hoursLeft}س و ${minsLeft}د لليوم التالي`;
+            }, 1000);
+        }
+        
+        document.getElementById('reset-btn').addEventListener('click', async () => {
+            if(confirm("تذكر أن الله غفور رحيم.. هل تريد البدء من جديد؟")) {
+                const newStartDate = Date.now(); await updateDoc(doc(db, "users", currentUser.uid), { startDate: newStartDate }); userData.startDate = newStartDate;
+            }
+        });
+
+        // --- مواقيت الصلاة (مع العداد التنازلي) ---
+        async function fetchPrayerTimes() {
+            try {
+                const res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Cairo&country=Egypt');
+                const timings = (await res.json()).data.timings;
+                const prayerNames = { Fajr: 'الفجر', Sunrise: 'الشروق', Dhuhr: 'الظهر', Asr: 'العصر', Maghrib: 'المغرب', Isha: 'العشاء' };
+                
+                const f = (t) => { let [h, m] = t.split(':'); let ampm = h >= 12 ? 'م' : 'ص'; h = h % 12 || 12; return `${h}:${m} <span style="font-size:14px; color:var(--text-muted)">${ampm}</span>`; };
+                
+                let html = '';
+                let prayerDates = [];
+                const now = new Date();
+                
+                for (let key in prayerNames) {
+                    if(timings[key]) {
+                        html += `<div class="prayer-card" id="card-${key}"><div class="prayer-name">${prayerNames[key]}</div><div class="prayer-time">${f(timings[key])}</div></div>`;
+                        let [h, m] = timings[key].split(':');
+                        let pDate = new Date();
+                        pDate.setHours(h, m, 0, 0);
+                        prayerDates.push({ key: key, name: prayerNames[key], date: pDate });
+                    }
+                }
+                document.getElementById('prayer-list').innerHTML = html;
+                prayerDates.sort((a, b) => a.date - b.date);
+
+                // حساب العداد التنازلي
+                if(prayerCountdownInterval) clearInterval(prayerCountdownInterval);
+                prayerCountdownInterval = setInterval(() => {
+                    const currentTime = new Date();
+                    let nextPrayer = prayerDates.find(p => p.date > currentTime);
+                    
+                    document.querySelectorAll('.prayer-card').forEach(c => c.classList.remove('next-prayer'));
+
+                    if (!nextPrayer) {
+                        nextPrayer = { ...prayerDates[0] };
+                        nextPrayer.date = new Date(nextPrayer.date);
+                        nextPrayer.date.setDate(nextPrayer.date.getDate() + 1);
+                    }
+                    
+                    const cardElement = document.getElementById(`card-${nextPrayer.key}`);
+                    if(cardElement) cardElement.classList.add('next-prayer');
+
+                    const diff = nextPrayer.date - currentTime;
+                    const h = Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
+                    const m = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
+                    const s = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
+
+                    document.getElementById('prayer-countdown').innerHTML = `<i class="fas fa-hourglass-half"></i> يتبقى على أذان ${nextPrayer.name} : <span style="direction:ltr; display:inline-block;">${h}:${m}:${s}</span>`;
+                }, 1000);
+
+            } catch (err) { document.getElementById('prayer-list').innerHTML = "حدث خطأ في المواقيت."; }
+        }
+
+        // --- القرآن الكريم والمشغل الصوتي ---
+        const surahSelect = document.getElementById('surah-select');
+        const reciterSelect = document.getElementById('reciter-select');
+        const quranText = document.getElementById('quran-text');
+        const customPlayer = document.getElementById('custom-player');
+        const playBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const progressWrapper = document.getElementById('progress-wrapper');
+        const timeDisplay = document.getElementById('time-display');
+        const audio = document.getElementById('full-surah-audio');
+
+        let currentSurahAyahs = []; let currentCopiedText = "";
+
+        fetch('https://api.alquran.cloud/v1/surah').then(res => res.json()).then(data => {
+            data.data.forEach(s => { surahSelect.innerHTML += `<option value="${s.number}">${s.number}. ${s.name}</option>`; });
+        });
+
+        async function loadSurah() {
+            const surahNum = surahSelect.value;
+            const reciter = reciterSelect.value;
+            if (!surahNum) { customPlayer.style.display = 'none'; return; }
+            
+            quranText.innerHTML = "<i class='fas fa-spinner fa-spin fa-2x' style='color:var(--primary); margin-top:50px;'></i>";
+            
+            let serverStr = "";
+            if(reciter === 'afs') serverStr = "server8.mp3quran.net/afs";
+            else if(reciter === 'basit') serverStr = "server7.mp3quran.net/basit";
+            else if(reciter === 'maher') serverStr = "server12.mp3quran.net/maher";
+            else if(reciter === 'yasser') serverStr = "server11.mp3quran.net/yasser";
+
+            const paddedSurahNum = surahNum.toString().padStart(3, '0');
+            audio.src = `https://${serverStr}/${paddedSurahNum}.mp3`;
+            customPlayer.style.display = 'flex';
+            playIcon.className = "fas fa-play";
+
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNum}/editions/quran-uthmani,ar.muyassar,ar.alafasy`);
+            const data = await res.json();
+            
+            let html = (surahNum != 1 && surahNum != 9) ? `<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>` : '';
+            currentSurahAyahs = [];
+            data.data[0].ayahs.forEach((ayah, i) => {
+                let text = ayah.text;
+                if (surahNum != 1 && ayah.numberInSurah === 1 && text.startsWith("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ")) text = text.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ", "");
+                
+                currentSurahAyahs.push({ text: text, tafsir: data.data[1].ayahs[i].text, audio: data.data[2].ayahs[i].audio, number: ayah.numberInSurah });
+                html += `<div class="ayah-wrapper" onclick="openAyahModal(${i})">${text} <span class="ayah-number">﴿${ayah.numberInSurah}﴾</span></div> `;
+            });
+            quranText.innerHTML = html;
+        }
+
+        surahSelect.addEventListener('change', loadSurah);
+        reciterSelect.addEventListener('change', () => { if(surahSelect.value) { const wasPlaying = !audio.paused; loadSurah().then(() => { if(wasPlaying) audio.play(); }); } });
+
+        playBtn.addEventListener('click', () => { if (audio.paused) { audio.play(); playIcon.className = "fas fa-pause"; } else { audio.pause(); playIcon.className = "fas fa-play"; } });
+
+        audio.addEventListener('timeupdate', () => {
+            if(isNaN(audio.duration)) return;
+            progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+            const formatTime = (time) => { const min = Math.floor(time / 60).toString().padStart(2, '0'); const sec = Math.floor(time % 60).toString().padStart(2, '0'); return `${min}:${sec}`; };
+            timeDisplay.innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+        });
+
+        progressWrapper.addEventListener('click', (e) => { audio.currentTime = (e.offsetX / progressWrapper.clientWidth) * audio.duration; });
+
+        window.openAyahModal = function(index) {
+            const ayah = currentSurahAyahs[index]; currentCopiedText = `${ayah.text} ﴿${ayah.number}﴾`;
+            document.getElementById('ayah-modal-title').innerText = `الآية ﴿${ayah.number}﴾`;
+            document.getElementById('ayah-tafsir').innerText = ayah.tafsir; document.getElementById('ayah-audio').src = ayah.audio;
+            document.getElementById('ayah-modal').style.display = 'flex';
+        }
+        window.copyCurrentAyah = function() { navigator.clipboard.writeText(currentCopiedText).then(() => alert('تم النسخ بنجاح!')); }
+
+        // --- الشات العام ---
+        function loadPublicChat() {
+            onSnapshot(query(collection(db, "publicMessages"), orderBy("timestamp", "asc")), (snap) => {
+                const box = document.getElementById('public-chat-box'); box.innerHTML = '';
+                snap.forEach((d) => {
+                    const data = d.data();
+                    const isMe = data.uid === currentUser.uid;
+                    box.innerHTML += `
+                        <div class="message-row ${isMe ? 'me' : ''}">
+                            <img src="${data.photoURL || defaultAvatar}" class="msg-avatar">
+                            <div class="msg-content">
+                                <div class="msg-sender">${data.senderName}</div>
+                                <div class="message-bubble">${data.text}</div>
+                            </div>
+                        </div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+        
+        document.getElementById('send-public-btn').addEventListener('click', async () => {
+            const input = document.getElementById('public-msg-input');
+            if (input.value.trim() !== '') { 
+                await addDoc(collection(db, "publicMessages"), { text: input.value, senderName: userData.name, photoURL: userData.photoURL, uid: currentUser.uid, timestamp: serverTimestamp() }); 
+                input.value = ''; 
+            }
+        });
+
+        // --- الشات الخاص وقائمة الأصدقاء ---
+        document.getElementById('send-request-btn').addEventListener('click', async () => {
+            const email = document.getElementById('friend-email-input').value.trim();
+            if(!email || email === currentUser.email) return;
+            const q = query(collection(db, "users"), where("email", "==", email));
+            const snap = await getDocs(q);
+            if(snap.empty) alert("لا يوجد حساب.");
+            else { await addDoc(collection(db, "friendRequests"), { fromUid: currentUser.uid, fromName: userData.name, toUid: snap.docs[0].id, status: "pending" }); alert("تمت الإضافة بنجاح!"); document.getElementById('friend-email-input').value = ''; }
+        });
+
+        function loadFriendsList() {
+            onSnapshot(collection(db, "users"), (snap) => {
+                const list = document.getElementById('private-friends-list');
+                list.innerHTML = '';
+                let hasFriends = false;
+                
+                snap.forEach((d) => {
+                    if(d.id !== currentUser.uid) {
+                        hasFriends = true;
+                        const friendData = d.data();
+                        const friendId = d.id;
+                        list.innerHTML += `
+                            <div class="friend-chat-item" id="friend-${friendId}" onclick="openPrivateChat('${friendId}', '${friendData.name}', '${friendData.photoURL || defaultAvatar}')">
+                                <img src="${friendData.photoURL || defaultAvatar}" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--border);">
+                                <div style="flex-grow: 1; text-align: right;">
+                                    <div style="font-weight: bold; color: var(--text-main); font-size: 15px;">${friendData.name}</div>
+                                </div>
+                            </div>`;
+                    }
+                });
+                if(!hasFriends) list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">لا يوجد أصدقاء مسجلين بعد.</div>`;
+            });
+        }
+
+        let privateChatUnsubscribe = null;
+
+        window.openPrivateChat = function(friendId, friendName, friendPhoto) {
+            currentPrivateChatFriendId = friendId;
+            document.querySelectorAll('.friend-chat-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`friend-${friendId}`).classList.add('active');
+            
+            document.getElementById('no-chat-selected').style.display = 'none';
+            document.getElementById('private-chat-area').style.display = 'flex';
+            document.getElementById('current-chat-name').innerText = friendName;
+            document.getElementById('current-chat-avatar').src = friendPhoto;
+
+            const chatId = currentUser.uid < friendId ? currentUser.uid + "_" + friendId : friendId + "_" + currentUser.uid;
+
+            if(privateChatUnsubscribe) privateChatUnsubscribe();
+
+            const q = query(collection(db, "privateMessages"), where("chatId", "==", chatId), orderBy("timestamp", "asc"));
+            privateChatUnsubscribe = onSnapshot(q, (snap) => {
+                const box = document.getElementById('private-chat-box'); 
+                box.innerHTML = '';
+                snap.forEach((d) => {
+                    const data = d.data();
+                    const isMe = data.senderId === currentUser.uid;
+                    const avatar = isMe ? userData.photoURL : friendPhoto;
+                    const name = isMe ? "أنت" : friendName;
+                    
+                    box.innerHTML += `
+                        <div class="message-row ${isMe ? 'me' : ''}">
+                            <img src="${avatar || defaultAvatar}" class="msg-avatar">
+                            <div class="msg-content">
+                                <div class="msg-sender">${name}</div>
+                                <div class="message-bubble">${data.text}</div>
+                            </div>
+                        </div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        document.getElementById('send-private-btn').addEventListener('click', async () => {
+            const input = document.getElementById('private-msg-input');
+            if (input.value.trim() !== '' && currentPrivateChatFriendId) { 
+                const chatId = currentUser.uid < currentPrivateChatFriendId ? currentUser.uid + "_" + currentPrivateChatFriendId : currentPrivateChatFriendId + "_" + currentUser.uid;
+                await addDoc(collection(db, "privateMessages"), { chatId: chatId, text: input.value, senderId: currentUser.uid, timestamp: serverTimestamp() }); 
+                input.value = ''; 
+            }
+        });
+    </script>
+</body>
+</html>
